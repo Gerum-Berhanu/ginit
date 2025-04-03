@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/style.css">
+    <script src="static/cdn.tailwindcss.js"></script>
+    <title>Ginit</title>
+</head>
+<body class="h-screen flex flex-col items-center bg-emerald-100 p-4 gap-4">
+    <div class="w-full flex justify-center gap-2">
+        <input type="text" id="equation-input" class="bg-white border-2 border-black p-4 rounded-md w-1/2" placeholder="Enter your equation here...">
+        <button id="solve-btn" class="bg-emerald-400 p-4 border-2 border-black rounded-md">Solve</button>
+    </div>
+    <div id="solution-cont" class="w-full h-full flex flex-col border-2 border-black/10 rounded-md bg-emerald-200/50 p-4 gap-4 overflow-auto scrollable-div">
+    </div>
+</body>
+<script src="static/script.js"></script>
+</html>
