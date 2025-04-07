@@ -1,8 +1,12 @@
 from sympy import symbols, sympify, diff, lambdify, S, Interval, Union
 from sympy.calculus.util import continuous_domain
+from decimal import Decimal
 import numpy
 
-def resolve(eqn, lower_bound = -100, upper_bound = 100):
+def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
+    if lower_bound >= upper_bound:
+        return [[], f"Invalid lower and/or upper bound."]
+    
     x = symbols('x')
 
     try:
@@ -25,8 +29,12 @@ def resolve(eqn, lower_bound = -100, upper_bound = 100):
         return [[], f"No real roots found in range {lower_bound} to {upper_bound}."]
 
     # convert symbolic expressions into python functions
-    f = lambdify(x, f_expr)
-    df = lambdify(x, df_expr)
+    f_raw = lambdify(x, f_expr)
+    df_raw = lambdify(x, df_expr)
+
+    # Wrapper functions: take Decimal or float, return Decimal
+    f = lambda x: Decimal(str(f_raw(float(x))))
+    df = lambda x: Decimal(str(df_raw(float(x))))
 
     potential_guesses = []
     roots_found = []
@@ -37,29 +45,22 @@ def resolve(eqn, lower_bound = -100, upper_bound = 100):
         intervals = [search_interval]
 
     for interval in intervals:
-        start = float(interval.start)
-        end = float(interval.end)
+        start = Decimal(str(interval.start))
+        end = Decimal(str(interval.end))
         samples = numpy.linspace(start, end, 100)
         
         for i in range(len(samples) - 1):
-            x1, x2 = samples[i], samples[i + 1]
-            # the below condition ensures values too close to the boundaries are not mistakenly approximated to the boundaries
-            if i == 0:
-                x1 += 1e-10
-                x2 += 1e-10
-            if i == len(samples) - 2:
-                x1 -= 1e-10
-                x2 -= 1e-10
+            x1, x2 = Decimal(str(samples[i])), Decimal(str(samples[i + 1]))
                 
             f1, f2 = f(x1), f(x2)
             if f1 == 0 or f2 == 0:
                 if f1 == 0:
-                    roots_found.append(float(x1))
+                    roots_found.append(x1)
                 if f2 == 0:
-                    roots_found.append(float(x2))
+                    roots_found.append(x2)
                 continue
 
-            midpoint = float((x1 + x2) / 2)
+            midpoint = Decimal(str((x1 + x2) / 2))
 
             if f(x1) * f(x2) <= 0:
                 potential_guesses.append(midpoint) # midpoint as initial guess
@@ -75,21 +76,21 @@ def resolve(eqn, lower_bound = -100, upper_bound = 100):
             if df(xn) == 0:
                 break
             
-            x_next = float(xn - (f(xn) / df(xn)))
+            x_next = Decimal(str(xn - (f(xn) / df(xn))))
 
             if abs(x_next - xn) <= 1e-5:
-                root = round(x_next, 5)
+                root = x_next
                 roots_found.append(root)
                 break
 
             xn = x_next
 
-    return [sorted(list(set(roots_found))), ""]
+    return [[round(float(ans), 10) for ans in sorted(list(set(roots_found)))], ""]
 
 if __name__ == "__main__":
     eqn_str = input("Enter an equation (use 'x' as a variable, e.g., x^3 - 4*x^2 + 1)\n>>> ")
-    lower_bound = float(input("Enter lower bound (default: -100): ") or -100)
-    upper_bound = float(input("Enter upper bound (default: 100): ") or 100)
+    lower_bound = Decimal(input("Enter lower bound (default: -100): ") or -100)
+    upper_bound = Decimal(input("Enter upper bound (default: 100): ") or 100)
     answer, message = resolve(eqn_str)
     if message:
         print(message)

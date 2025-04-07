@@ -11,7 +11,10 @@ def index():
 @app.route("/solve", methods = ["POST"])
 def solve():
     equation = request.form.get("equation")
-    solution, message = resolve(equation)
+    lowerBound = float(request.form.get("lowerBound") or -100)
+    upperBound = float(request.form.get("upperBound") or 100)
+    
+    solution, message = resolve(equation, lowerBound, upperBound)
     return json.dumps({"solution": solution, "message": message})
 
 if __name__ == "__main__":
