@@ -32,7 +32,7 @@ def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
     f_raw = lambdify(x, f_expr)
     df_raw = lambdify(x, df_expr)
 
-    # Wrapper functions: take Decimal or float, return Decimal
+    # wrapper functions: take Decimal or float, return Decimal
     f = lambda x: Decimal(str(f_raw(float(x))))
     df = lambda x: Decimal(str(df_raw(float(x))))
 
@@ -47,20 +47,17 @@ def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
     for interval in intervals:
         start = Decimal(str(interval.start))
         end = Decimal(str(interval.end))
+        if interval.left_open:
+            start += Decimal(str("1e-8"))
+        if interval.right_open:
+            end -= Decimal(str("1e-8"))
         samples = numpy.linspace(start, end, 100)
         
         for i in range(len(samples) - 1):
             x1, x2 = Decimal(str(samples[i])), Decimal(str(samples[i + 1]))
-                
-            f1, f2 = f(x1), f(x2)
-            if f1 == 0 or f2 == 0:
-                if f1 == 0:
-                    roots_found.append(x1)
-                if f2 == 0:
-                    roots_found.append(x2)
-                continue
 
             midpoint = Decimal(str((x1 + x2) / 2))
+            # midpoint = round(float((x1 + x2) / 2), 10)
 
             if f(x1) * f(x2) <= 0:
                 potential_guesses.append(midpoint) # midpoint as initial guess
@@ -71,21 +68,19 @@ def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
                     potential_guesses.append(midpoint)
 
     for initial_guess in potential_guesses:
+        count = 0
         xn = initial_guess
-        for _ in range(100):
-            if df(xn) == 0:
-                break
-            
-            x_next = Decimal(str(xn - (f(xn) / df(xn))))
-
-            if abs(x_next - xn) <= 1e-5:
-                root = x_next
-                roots_found.append(root)
-                break
-
+        if df(xn) == 0:
+            continue
+        x_next = Decimal(str(xn - (f(xn) / df(xn))))
+        while abs(x_next - xn) > 1e-5:
+            count += 1
             xn = x_next
+            x_next = Decimal(str(x_next - (f(x_next) / df(x_next))))
+        root = round(float(x_next), 10)
+        roots_found.append(root)
 
-    return [[round(float(ans), 10) for ans in sorted(list(set(roots_found)))], ""]
+    return [[ans for ans in sorted(list(set(roots_found)))], ""]
 
 if __name__ == "__main__":
     eqn_str = input("Enter an equation (use 'x' as a variable, e.g., x^3 - 4*x^2 + 1)\n>>> ")
