@@ -2,11 +2,19 @@ from sympy import symbols, sympify, diff, lambdify, S, Interval, Union
 from sympy.calculus.util import continuous_domain
 from decimal import Decimal
 from plotter import prepare_plot
+from interface import run_app
+from scripts import replace_logs
 import numpy
 
-def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
+def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
+    eqn = equation_entry.get()
+    lower_bound = float(lower_bound_entry.get())
+    upper_bound = float(upper_bound_entry.get())
+
     if lower_bound >= upper_bound:
         return [[], f"Invalid lower and/or upper bound."]
+
+    eqn = replace_logs(eqn)
     
     x = symbols('x')
 
@@ -85,21 +93,27 @@ def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
         if count_plot == 0:
             prepare_plot(eqn, xn, x_next)
             count_plot += 1
-            
+
         while abs(x_next - xn) > 1e-5:
             xn = x_next
             x_next = Decimal(str(x_next - (f(x_next) / df(x_next))))
         root = round(float(x_next), 10)
         roots_found.append(root)
 
-    return [[ans for ans in sorted(list(set(roots_found)))], ""]
+    roots_found = sorted(list(set(roots_found)))
+    if roots_found:
+        result_label.config(text=f"Solutions: {roots_found}")
+    else:
+        result_label.config(text="No solutions found.")
+    # return [[ans for ans in sorted(list(set(roots_found)))], ""]
 
 if __name__ == "__main__":
-    eqn_str = input("Enter an equation (use 'x' as a variable, e.g., x^3 - 4*x^2 + 1)\n>>> ")
-    lower_bound = Decimal(input("Enter lower bound (default: -100): ") or -100)
-    upper_bound = Decimal(input("Enter upper bound (default: 100): ") or 100)
-    answer, message = resolve(eqn_str, lower_bound, upper_bound)
-    if message:
-        print(message)
-    else:
-        print(answer)
+    # eqn_str = input("Enter an equation (use 'x' as a variable, e.g., x^3 - 4*x^2 + 1)\n>>> ")
+    # lower_bound = Decimal(input("Enter lower bound (default: -100): ") or -100)
+    # upper_bound = Decimal(input("Enter upper bound (default: 100): ") or 100)
+    # answer, message = resolve(eqn_str, lower_bound, upper_bound)
+    # if message:
+    #     print(message)
+    # else:
+    #     print(answer)
+    run_app(resolve)
