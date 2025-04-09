@@ -1,6 +1,7 @@
 from sympy import symbols, sympify, diff, lambdify, S, Interval, Union
 from sympy.calculus.util import continuous_domain
 from decimal import Decimal
+from plotter import prepare_plot
 import numpy
 
 def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
@@ -43,7 +44,7 @@ def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
         intervals = list(search_interval.args)
     else:
         intervals = [search_interval]
-    print(intervals)
+    # print(intervals)
 
     for interval in intervals:
         start = Decimal(str(interval.start))
@@ -70,7 +71,7 @@ def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
     
     # print(potential_guesses)
     # print(f_domain, df_domain)
-
+    count_plot = 0
     for initial_guess in potential_guesses:
         xn = initial_guess
         if f(xn) == 0:
@@ -80,6 +81,11 @@ def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
         if df(xn) == 0:
             continue
         x_next = Decimal(str(xn - (f(xn) / df(xn))))
+
+        if count_plot == 0:
+            prepare_plot(eqn, xn, x_next)
+            count_plot += 1
+            
         while abs(x_next - xn) > 1e-5:
             xn = x_next
             x_next = Decimal(str(x_next - (f(x_next) / df(x_next))))
