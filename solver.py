@@ -43,6 +43,7 @@ def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
         intervals = list(search_interval.args)
     else:
         intervals = [search_interval]
+    print(intervals)
 
     for interval in intervals:
         start = Decimal(str(interval.start))
@@ -51,7 +52,7 @@ def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
             start += Decimal(str("1e-8"))
         if interval.right_open:
             end -= Decimal(str("1e-8"))
-        samples = numpy.linspace(start, end, 100)
+        samples = numpy.linspace(start, end, 1000)
         
         for i in range(len(samples) - 1):
             x1, x2 = Decimal(str(samples[i])), Decimal(str(samples[i + 1]))
@@ -66,15 +67,20 @@ def resolve(eqn, lower_bound = -100.0, upper_bound = 100.0):
                 df1, df2 = df(x1), df(x2)
                 if df1 * df2 <= 0:
                     potential_guesses.append(midpoint)
+    
+    # print(potential_guesses)
+    # print(f_domain, df_domain)
 
     for initial_guess in potential_guesses:
-        count = 0
         xn = initial_guess
+        if f(xn) == 0:
+            root = round(float(xn), 10)
+            roots_found.append(root)
+            continue
         if df(xn) == 0:
             continue
         x_next = Decimal(str(xn - (f(xn) / df(xn))))
         while abs(x_next - xn) > 1e-5:
-            count += 1
             xn = x_next
             x_next = Decimal(str(x_next - (f(x_next) / df(x_next))))
         root = round(float(x_next), 10)
@@ -86,7 +92,7 @@ if __name__ == "__main__":
     eqn_str = input("Enter an equation (use 'x' as a variable, e.g., x^3 - 4*x^2 + 1)\n>>> ")
     lower_bound = Decimal(input("Enter lower bound (default: -100): ") or -100)
     upper_bound = Decimal(input("Enter upper bound (default: 100): ") or 100)
-    answer, message = resolve(eqn_str)
+    answer, message = resolve(eqn_str, lower_bound, upper_bound)
     if message:
         print(message)
     else:
