@@ -42,22 +42,23 @@ def plot_graph(expr_data, line1, line2):
     l2 = line2(x_ax)
 
     plt.plot(x_ax, y1, label=f"f(x) = {expr_data["equation"]}", color="blue")
-    plt.plot(x_ax, l1, label=f"Tangent at x = {expr_data["line_pt1"]}", color="green")
-    plt.plot(x_ax, l2, label=f"Tangent at x = {expr_data["line_pt2"]}", color="red")
 
     plt.scatter(expr_data["line_pt1"], 0, label=f"Initial guess ({expr_data["line_pt1"]}, 0)", color="green")
     plt.scatter(expr_data["line_pt2"], 0, label=f"Second guess ({expr_data["line_pt2"]}, 0)", color="red")
+    
+    plt.plot(x_ax, l1, label=f"Tangent at initial guess", color="green")
+    plt.plot(x_ax, l2, label=f"Tangent at second guess", color="red")
 
     plt.xlabel("X-axis")
     plt.ylabel("Y-axis")
-    plt.title("Demonstration of Plotting")
+    plt.title(f"Graph of {expr_data["equation"]}")
 
     # Bold the x=0 and y=0 lines
     plt.axhline(0, color='black', linewidth=2)  # y=0 (horizontal line at y=0)
     plt.axvline(0, color='black', linewidth=2)  # x=0 (vertical line at x=0)
 
-    plt.xlim(-10, 10)
-    plt.ylim(-5, 10)
+    plt.xlim(-100, 100)
+    plt.ylim(-100, 100)
 
     plt.grid(True)
     plt.legend(loc="upper left")

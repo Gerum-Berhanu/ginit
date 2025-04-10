@@ -1,9 +1,9 @@
-from sympy import symbols, sympify, diff, lambdify, S, Interval, Union
+from sympy import symbols, sympify, diff, lambdify, S, Interval, Union, sqrt
 from sympy.calculus.util import continuous_domain
 from decimal import Decimal
 from plotter import prepare_plot
 from interface import run_app
-from scripts import replace_logs
+from scripts import *
 import numpy
 
 def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
@@ -47,6 +47,31 @@ def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
 
     potential_guesses = []
     roots_found = []
+
+    # if is_expr_only_square_roots(f_expr):
+    #     roots = solve_inverse(f_expr)
+    #     for R in roots:
+    #         roots_found.append(R)
+    #     result_label.config(text=f"Solutions: {roots_found}")
+    #     return
+    has_sqrt = any(
+        isinstance(arg, Pow) 
+        # and arg.exp == Rational(1, 2)
+        and arg.exp.q != 1 # means exponent is a rational (1/n) and not an integer
+        and arg.exp.p == 1 # numerator of exponent must be 1
+        for arg in f_expr.atoms(Pow)
+    )
+    
+    if has_sqrt:
+        roots, msg = solve_inverse(f_expr)
+        print(roots)
+        if msg:
+            result_label.config(text=f"{msg}")
+        else:
+            for R in roots:
+                roots_found.append(float(R))
+            result_label.config(text=f"Solutions: {roots_found}")
+        return solve_inverse(f_expr)
     
     if isinstance(search_interval, Union):
         intervals = list(search_interval.args)
@@ -82,21 +107,23 @@ def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
     count_plot = 0
     for initial_guess in potential_guesses:
         xn = initial_guess
+
         if f(xn) == 0:
             root = round(float(xn), 10)
             roots_found.append(root)
             continue
         if df(xn) == 0:
             continue
+
         x_next = Decimal(str(xn - (f(xn) / df(xn))))
 
-        if count_plot == 0:
+        if count_plot == 0 and not is_expr_only_square_roots(f_expr):
             prepare_plot(eqn, xn, x_next)
             count_plot += 1
 
         while abs(x_next - xn) > 1e-5:
             xn = x_next
-            x_next = Decimal(str(x_next - (f(x_next) / df(x_next))))
+            x_next = Decimal(str(xn - (f(xn) / df(xn))))
         root = round(float(x_next), 10)
         roots_found.append(root)
 
