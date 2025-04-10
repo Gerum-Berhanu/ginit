@@ -57,8 +57,8 @@ def plot_graph(expr_data, line1, line2):
     plt.axhline(0, color='black', linewidth=2)  # y=0 (horizontal line at y=0)
     plt.axvline(0, color='black', linewidth=2)  # x=0 (vertical line at x=0)
 
-    plt.xlim(-100, 100)
-    plt.ylim(-100, 100)
+    plt.xlim(-10, 10)
+    plt.ylim(-10, 10)
 
     plt.grid(True)
     plt.legend(loc="upper left")

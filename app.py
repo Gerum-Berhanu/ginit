@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 import json
-from solver import resolve
+from solver_web import resolve
 
 app = Flask(__name__)
 

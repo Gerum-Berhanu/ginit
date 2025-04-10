@@ -1,22 +1,17 @@
-from sympy import symbols, sympify, diff, lambdify, S, Interval, Union, sqrt
+from sympy import symbols, sympify, diff, lambdify, S, Interval, Union, tan, cot, Function
 from sympy.calculus.util import continuous_domain
 from decimal import Decimal
 from plotter import prepare_plot
-from interface import run_app
 from scripts import *
 import numpy
 
-def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
-    eqn = equation_entry.get()
-    lower_bound = float(lower_bound_entry.get())
-    upper_bound = float(upper_bound_entry.get())
-
+def resolve(eqn, lower_bound, upper_bound):
     if lower_bound >= upper_bound:
         return [[], f"Invalid lower and/or upper bound."]
 
-    eqn = replace_logs(eqn)
-    
     x = symbols('x')
+    
+    eqn = replace_logs(eqn)
 
     try:
         f_expr = sympify(eqn)
@@ -48,29 +43,23 @@ def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
     potential_guesses = []
     roots_found = []
 
-    # if is_expr_only_square_roots(f_expr):
-    #     roots = solve_inverse(f_expr)
-    #     for R in roots:
-    #         roots_found.append(R)
-    #     result_label.config(text=f"Solutions: {roots_found}")
-    #     return
     has_sqrt = any(
         isinstance(arg, Pow) 
-        # and arg.exp == Rational(1, 2)
         and arg.exp.q != 1 # means exponent is a rational (1/n) and not an integer
         and arg.exp.p == 1 # numerator of exponent must be 1
         for arg in f_expr.atoms(Pow)
     )
+    has_tan_cot = any(
+        isinstance(arg, Function)
+        and (arg.func == tan or arg.func == cot) # checks if the function is tan or cot
+        for arg in f_expr.atoms(Function)
+    )
     
-    if has_sqrt:
+    if has_sqrt or has_tan_cot:
         roots, msg = solve_inverse(f_expr)
-        print(roots)
-        if msg:
-            result_label.config(text=f"{msg}")
-        else:
+        if not msg:
             for R in roots:
-                roots_found.append(float(R))
-            result_label.config(text=f"Solutions: {roots_found}")
+                roots_found.append(R)
         return solve_inverse(f_expr)
     
     if isinstance(search_interval, Union):
@@ -103,7 +92,6 @@ def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
                     potential_guesses.append(midpoint)
     
     # print(potential_guesses)
-    # print(f_domain, df_domain)
     count_plot = 0
     for initial_guess in potential_guesses:
         xn = initial_guess
@@ -128,19 +116,14 @@ def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
         roots_found.append(root)
 
     roots_found = sorted(list(set(roots_found)))
-    if roots_found:
-        result_label.config(text=f"Solutions: {roots_found}")
-    else:
-        result_label.config(text="No solutions found.")
-    # return [[ans for ans in sorted(list(set(roots_found)))], ""]
+    return [[ans for ans in roots_found], ""]
 
 if __name__ == "__main__":
-    # eqn_str = input("Enter an equation (use 'x' as a variable, e.g., x^3 - 4*x^2 + 1)\n>>> ")
-    # lower_bound = Decimal(input("Enter lower bound (default: -100): ") or -100)
-    # upper_bound = Decimal(input("Enter upper bound (default: 100): ") or 100)
-    # answer, message = resolve(eqn_str, lower_bound, upper_bound)
-    # if message:
-    #     print(message)
-    # else:
-    #     print(answer)
-    run_app(resolve)
+    eqn_str = input("Enter an equation (use 'x' as a variable, e.g., x^3 - 4*x^2 + 1)\n>>> ")
+    lower_bound = Decimal(input("Enter lower bound (default: -100): ") or -100)
+    upper_bound = Decimal(input("Enter upper bound (default: 100): ") or 100)
+    answer, message = resolve(eqn_str, lower_bound, upper_bound)
+    if message:
+        print(message)
+    else:
+        print(answer)

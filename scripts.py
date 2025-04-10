@@ -4,12 +4,10 @@ from sympy.calculus.util import continuous_domain
 import re
 
 def replace_logs(input_string):
-    # Replace log(expr) with log(expr, 10)
-    updated_string = re.sub(r"log\(([^)]+)\)", r"log(\1, 10)", input_string)
-
-    # Replace ln(expr) with log(expr, expr(1))
+    # Replace log(expr) with log(expr, 10) only if there is no second argument (base)
+    updated_string = re.sub(r"log\(([^,]+)\)", r"log(\1, 10)", input_string)
+    # Replace ln(expr) with log(expr, exp(1))
     updated_string = re.sub(r"ln\(([^)]+)\)", r"log(\1, exp(1))", updated_string)
-
     return updated_string
 
 def solve_inverse(expr) -> float:
@@ -75,7 +73,3 @@ def is_expr_only_square_roots(expr: Expr) -> bool:
         return False
 
     return True
-
-# print(is_expr_only_square_roots(sympify("sqrt(x)")))
-# print(is_expr_only_square_roots(sympify("sqrt(x-1)")))
-# print(is_expr_only_square_roots(sympify("sqrt(x**2-1)")))
