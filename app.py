@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 import json
-from solver_web import resolve
+from solver import resolve
 
 app = Flask(__name__)
 
@@ -14,7 +14,7 @@ def solve():
     lowerBound = float(request.form.get("lowerBound") or -100)
     upperBound = float(request.form.get("upperBound") or 100)
     
-    solution, message = resolve(equation, lowerBound, upperBound)
+    solution, message = resolve(equation, lowerBound, upperBound, False)
     return json.dumps({"solution": solution, "message": message})
 
 if __name__ == "__main__":

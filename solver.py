@@ -1,16 +1,11 @@
 from sympy import symbols, lambdify, S, Interval, Union
 from decimal import Decimal
-from interface import run_app
 from scripts import *
 
-def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
-    eqn = equation_entry.get()
-    lower_bound = float(lower_bound_entry.get())
-    upper_bound = float(upper_bound_entry.get())
-
+def resolve(eqn, lower_bound, upper_bound, to_plot):
     if lower_bound >= upper_bound:
         return [[], f"Invalid lower and/or upper bound."]
-
+    
     x = symbols('x')
     eqn = replace_logs(eqn)
 
@@ -22,13 +17,13 @@ def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
     full_range = Interval(lower_bound, upper_bound)
     search_interval = f_domain.intersect(full_range)
     if search_interval is S.EmptySet:
-        return [[], f"No real roots found in range {lower_bound} to {upper_bound}."]
+        return [[], f"No real root found in the interval {lower_bound} to {upper_bound}."]
 
-    # convert symbolic expressions into python functions
+    # Convert symbolic expressions into python functions
     f_raw = lambdify(x, f_expr)
     df_raw = lambdify(x, df_expr)
 
-    # wrapper functions: take Decimal or float, return Decimal
+    # Wrapper functions: take Decimal or float, return Decimal
     f = lambda x: Decimal(str(f_raw(float(x))))
     df = lambda x: Decimal(str(df_raw(float(x))))
 
@@ -51,7 +46,6 @@ def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
         return [[], f"No real root found in the interval {lower_bound} to {upper_bound}."]
     
     # Solve with newton's method only if the equation doesn't hold x^(1/n), tan(x) and cot(x)
-    to_plot = True
     for initial_guess in potential_guesses:
         root = newtons_method(initial_guess, eqn, f, df, to_plot)
         to_plot = False
@@ -60,10 +54,15 @@ def resolve(equation_entry, lower_bound_entry, upper_bound_entry, result_label):
         roots_found.append(root)
 
     roots_found = sorted(list(set(roots_found)))
-    if roots_found:
-        result_label.config(text=f"Solutions: {roots_found}")
-    else:
-        result_label.config(text="No solutions found.")
+    return [[ans for ans in roots_found], ""]
 
 if __name__ == "__main__":
-    run_app(resolve)
+    eqn_str = input("Enter an equation (use 'x' as a variable, e.g., x^3 - 4*x^2 + 1)\n>>> ")
+    lower_bound = Decimal(input("Enter lower bound (default: -100): ") or -100)
+    upper_bound = Decimal(input("Enter upper bound (default: 100): ") or 100)
+
+    answer, message = resolve(eqn_str, lower_bound, upper_bound, True)
+    if message:
+        print(message)
+    else:
+        print(answer)
