@@ -1,7 +1,6 @@
 from sympy import symbols, sympify, diff, Pow, solve, lambdify, S, Function, tan, cot, sec, csc
 from sympy.calculus.util import continuous_domain
 from decimal import Decimal
-from plotter import prepare_plot
 import re
 import numpy
 
