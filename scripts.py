@@ -1,4 +1,4 @@
-from sympy import symbols, sympify, diff, Pow, solve, lambdify, S, Function, tan, cot
+from sympy import symbols, sympify, diff, Pow, solve, lambdify, S, Function, tan, cot, sec, csc
 from sympy.calculus.util import continuous_domain
 from decimal import Decimal
 from plotter import prepare_plot
@@ -43,13 +43,12 @@ def inverse_method(f_expr):
         and arg.exp.p == 1 # numerator of exponent must be 1
         for arg in f_expr.atoms(Pow)
     )
-    has_tan_cot = any(
-        isinstance(arg, Function)
-        and (arg.func == tan or arg.func == cot) # checks if the function is tan or cot
+    has_tan_cot_sec_csc = any(
+        isinstance(arg, Function) and arg.func in (tan, cot, sec, csc)
         for arg in f_expr.atoms(Function)
     )
     
-    if not has_sqrt and not has_tan_cot:
+    if not has_sqrt and not has_tan_cot_sec_csc:
         return [None, None]
     
     x, y = symbols('x y')
